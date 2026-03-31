@@ -2,9 +2,66 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>bagaapp</title>
+  <title>黑桃AI判斷系統</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      text-align: center;
+      font-family: Arial;
+      padding: 40px;
+    }
+    input {
+      padding: 10px;
+      font-size: 18px;
+      width: 200px;
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .banker { color: red; }
+    .player { color: #00bfff; }
+  </style>
 </head>
 <body>
-  <h1>Hello bagaapp</h1>
+
+  <h1>黑桃AI判斷系統</h1>
+
+  <p>輸入權值總和</p>
+  <input type="number" id="score" placeholder="例如 5">
+
+  <br>
+  <button onclick="calculate()">開始判斷</button>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    function calculate() {
+      let score = parseInt(document.getElementById("score").value);
+      let resultText = "";
+
+      if (isNaN(score)) {
+        resultText = "請輸入數值";
+      } else if (score > 0) {
+        resultText = '<span class="banker">方向：下莊（勇敢下注）</span>';
+      } else if (score < 0) {
+        resultText = '<span class="player">方向：下閒（小注）</span>';
+      } else {
+        resultText = "看一把或自行判斷";
+      }
+
+      document.getElementById("result").innerHTML = resultText;
+    }
+  </script>
+
 </body>
 </html>
