@@ -1,67 +1,684 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>黑桃AI判斷系統</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>真數算牌系統</title>
   <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "Zen Maru Gothic", "Noto Sans TC", sans-serif;
+    }
+
     body {
-      background: #111;
-      color: #fff;
-      text-align: center;
-      font-family: Arial;
-      padding: 40px;
+      background:
+        radial-gradient(circle at top, rgba(255, 205, 90, 0.18), transparent 30%),
+        radial-gradient(circle at center, rgba(255, 170, 30, 0.12), transparent 35%),
+        linear-gradient(180deg, rgba(20, 7, 0, 0.92), rgba(8, 2, 0, 0.96));
+      color: #f6df9f;
     }
-    input {
-      padding: 10px;
-      font-size: 18px;
-      width: 200px;
-      text-align: center;
+
+    .page {
+      min-height: 100vh;
+      padding: 16px;
     }
-    button {
-      padding: 10px 20px;
+
+    .wrap {
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .topBar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 22px;
+      border-radius: 26px;
+      border: 1px solid rgba(255, 193, 94, 0.35);
+      background: rgba(32, 10, 0, 0.76);
+      box-shadow: 0 0 0 1px rgba(255, 200, 120, 0.08) inset, 0 10px 30px rgba(0, 0, 0, 0.35);
+      margin-bottom: 14px;
+    }
+
+    .title {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .tag {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 193, 94, 0.28);
+      background: rgba(70, 35, 0, 0.65);
+      color: #f3d78c;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.35fr 0.85fr;
+      gap: 14px;
+    }
+
+    .panel {
+      padding: 18px;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 193, 94, 0.28);
+      background: rgba(28, 8, 0, 0.8);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 205, 110, 0.06) inset;
+    }
+
+    .panelTitle {
+      font-size: 20px;
+      font-weight: 900;
+      margin-bottom: 14px;
+    }
+
+    .label {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .input,
+    .textarea {
+      width: 100%;
+      border: 1px solid rgba(255, 193, 94, 0.25);
+      background: rgba(10, 4, 0, 0.85);
+      color: #f8e9ba;
+      border-radius: 18px;
+      padding: 16px;
+      outline: none;
+      font-size: 16px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    .textarea {
+      min-height: 108px;
+      resize: vertical;
+    }
+
+    .inputRow {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .inputRow .input {
+      flex: 1;
+    }
+
+    .timer {
+      min-width: 130px;
+      text-align: center;
+      padding: 16px 18px;
+      border-radius: 18px;
       font-size: 18px;
-      margin-top: 10px;
+      font-weight: 900;
+      border: 1px solid rgba(255, 193, 94, 0.28);
+      background: linear-gradient(180deg, rgba(90, 55, 8, 0.85), rgba(60, 32, 0, 0.85));
+      color: #f9df95;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .timer.danger {
+      color: #ffb6b6;
+      border-color: rgba(255, 80, 80, 0.4);
+    }
+
+    .btn {
+      border: none;
       cursor: pointer;
+      font-weight: 900;
+      border-radius: 18px;
+      transition: transform 0.12s ease, filter 0.12s ease;
     }
-    .result {
-      margin-top: 30px;
-      font-size: 24px;
-      font-weight: bold;
+
+    .btn:active {
+      transform: translateY(1px) scale(0.98);
     }
-    .banker { color: red; }
-    .player { color: #00bfff; }
+
+    .btnGold {
+      padding: 14px 22px;
+      background: linear-gradient(180deg, #ffe089 0%, #e6ac24 55%, #b97c12 100%);
+      color: #2f1800;
+      box-shadow:
+        0 0 18px rgba(255, 196, 70, 0.42),
+        inset 0 1px 0 rgba(255,255,255,0.55),
+        inset 0 -2px 0 rgba(102, 56, 0, 0.35);
+    }
+
+    .btnGold:hover {
+      filter: brightness(1.06);
+    }
+
+    .sectionBlock {
+      margin-bottom: 18px;
+    }
+
+    .helperText {
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: rgba(245, 224, 167, 0.88);
+    }
+
+    .quickGrid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .quickRow {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .quickBtn {
+      padding: 12px 0;
+      border-radius: 18px;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .quickBtnBlue {
+      color: #eef6ff;
+      background: linear-gradient(180deg, #355f9f 0%, #1f3d6f 100%);
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .resultCard {
+      border-radius: 24px;
+      border: 1px solid rgba(255, 193, 94, 0.22);
+      background: rgba(9, 4, 0, 0.72);
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .resultLabel {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: #e4c97a;
+    }
+
+    .resultBig {
+      font-size: 44px;
+      font-weight: 900;
+      line-height: 1.15;
+      word-break: keep-all;
+    }
+
+    .resultBig.suggestion {
+      font-size: 34px;
+      white-space: normal;
+      line-height: 1.3;
+      word-break: keep-all;
+    }
+
+    .redGlow {
+      color: #ff5c5c;
+      text-shadow:
+        0 0 6px rgba(255, 80, 80, 0.8),
+        0 0 14px rgba(255, 40, 40, 0.65),
+        0 0 24px rgba(255, 0, 0, 0.45);
+    }
+
+    .blueGlow {
+      color: #6db8ff;
+      text-shadow:
+        0 0 6px rgba(80, 160, 255, 0.8),
+        0 0 14px rgba(40, 120, 255, 0.65),
+        0 0 24px rgba(0, 80, 255, 0.45);
+    }
+
+    .statusBox {
+      margin-top: 14px;
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: rgba(80, 10, 8, 0.48);
+      border: 1px solid rgba(255, 102, 102, 0.15);
+      text-align: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: #f0c7c7;
+    }
+
+    .summary {
+      margin-top: 14px;
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: rgba(255, 210, 120, 0.05);
+      border: 1px solid rgba(255, 193, 94, 0.12);
+    }
+
+    .summaryItem {
+      margin: 6px 0;
+      font-size: 15px;
+      color: #f6df9f;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .quickGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .quickRow { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .resultBig { font-size: 36px; }
+      .resultBig.suggestion { font-size: 28px; }
+    }
+
+    @media (max-width: 640px) {
+      .topBar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .inputRow {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .timer {
+        width: 100%;
+        min-width: auto;
+      }
+      .quickGrid,
+      .quickRow {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="page">
+    <div class="wrap">
+      <div class="topBar">
+        <div class="title">真數算牌系統</div>
+        <div class="tag">手機版 / 電腦版可用</div>
+      </div>
 
-  <h1>黑桃AI判斷系統</h1>
+      <div class="grid">
+        <div class="panel">
+          <div class="panelTitle">序號模式</div>
 
-  <p>輸入權值總和</p>
-  <input type="number" id="score" placeholder="例如 5">
+          <div class="inputRow">
+            <input id="license" class="input" placeholder="輸入序號開始使用" />
+            <button id="activateBtn" class="btn btnGold" type="button">啟用</button>
+            <div id="timer" class="timer">00:00:00</div>
+          </div>
 
-  <br>
-  <button onclick="calculate()">開始判斷</button>
+          <div id="notActivatedBox" class="statusBox">請先輸入序號，啟用後才可使用。</div>
 
-  <div class="result" id="result"></div>
+          <div id="activatedArea" class="hidden">
+            <div class="sectionBlock" style="margin-top: 18px;">
+              <div class="label">現在第幾局：</div>
+              <input id="round" class="input" type="number" min="1" value="1" />
+            </div>
+
+            <button id="clearRoundBtn" class="btn btnGold" type="button" style="margin-bottom: 18px;">清空局數</button>
+
+            <div class="sectionBlock">
+              <div class="label">輸入牌面：</div>
+              <textarea id="cards" class="textarea" placeholder="例如：A 2 3 / 9, 10, K"></textarea>
+              <div class="helperText">牌面輸入 與 權值總和輸入 二選一。若有填總和，系統優先使用總和。</div>
+              <div class="helperText">可以用空格、逗號、斜線分開。支援 A 2 3 4 5 6 7 8 9 10 J Q K。</div>
+            </div>
+
+            <div class="sectionBlock">
+              <div class="label">快速點牌</div>
+              <div id="quickCards" class="quickGrid"></div>
+              <button id="clearCardsBtn" type="button" class="btn btnGold" style="margin-top: 12px;">清空牌面</button>
+            </div>
+
+            <div class="sectionBlock">
+              <div class="label">輸入權值總和：</div>
+              <input id="manualTotal" class="input" placeholder="可直接輸入，例如：-3、0、5" />
+              <div id="quickTotals" class="quickRow"></div>
+              <button id="clearManualTotalBtn" type="button" class="btn btnGold" style="margin-top: 12px;">清空總和</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panelTitle">結果</div>
+
+          <div class="resultCard">
+            <div class="resultLabel">方向</div>
+            <div id="resultDirection" class="resultBig">未啟用</div>
+          </div>
+
+          <div class="resultCard">
+            <div class="resultLabel">建議</div>
+            <div id="resultSuggestion" class="resultBig suggestion">請先輸入序號</div>
+          </div>
+
+          <div id="summary" class="summary hidden">
+            <div id="summaryFinalTotal" class="summaryItem">權值總和：0</div>
+            <div id="summaryDecksLeft" class="summaryItem">剩餘副數：8</div>
+            <div id="summaryTrueCount" class="summaryItem">真數：0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
-    function calculate() {
-      let score = parseInt(document.getElementById("score").value);
-      let resultText = "";
+    const EXEC_URL = "https://script.google.com/macros/s/AKfycbxGa5n6QIlsEoUrrmtPDZavNLI4x3FZx30XoBDixpIqsJ0_H9G3vIHS3_exNWy-cDOtjA/exec";
 
-      if (isNaN(score)) {
-        resultText = "請輸入數值";
-      } else if (score > 0) {
-        resultText = '<span class="banker">方向：下莊（勇敢下注）</span>';
-      } else if (score < 0) {
-        resultText = '<span class="player">方向：下閒（小注）</span>';
-      } else {
-        resultText = "看一把或自行判斷";
+    const cardMap = {
+      A: 1, "1": 1, "2": 1,
+      "3": -1, "4": -1, "5": -1, "6": -1,
+      "7": 1, "8": 1, "9": 1,
+      "10": 0, J: 0, Q: 0, K: 0
+    };
+
+    const quickCards = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    const quickTotals = ["+", "-", "1", "2", "3", "4", "5", "6"];
+
+    const els = {
+      license: document.getElementById("license"),
+      activateBtn: document.getElementById("activateBtn"),
+      timer: document.getElementById("timer"),
+      round: document.getElementById("round"),
+      clearRoundBtn: document.getElementById("clearRoundBtn"),
+      cards: document.getElementById("cards"),
+      clearCardsBtn: document.getElementById("clearCardsBtn"),
+      manualTotal: document.getElementById("manualTotal"),
+      clearManualTotalBtn: document.getElementById("clearManualTotalBtn"),
+      quickCards: document.getElementById("quickCards"),
+      quickTotals: document.getElementById("quickTotals"),
+      notActivatedBox: document.getElementById("notActivatedBox"),
+      activatedArea: document.getElementById("activatedArea"),
+      resultDirection: document.getElementById("resultDirection"),
+      resultSuggestion: document.getElementById("resultSuggestion"),
+      summary: document.getElementById("summary"),
+      summaryFinalTotal: document.getElementById("summaryFinalTotal"),
+      summaryDecksLeft: document.getElementById("summaryDecksLeft"),
+      summaryTrueCount: document.getElementById("summaryTrueCount")
+    };
+
+    const state = {
+      round: 1,
+      expiredAt: null,
+      timeLeft: 0,
+      timerId: null
+    };
+
+    function getOrCreateDeviceId() {
+      const key = "blackspade_device_id";
+      let deviceId = localStorage.getItem(key);
+      if (!deviceId) {
+        deviceId = "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(key, deviceId);
+      }
+      return deviceId;
+    }
+
+    async function getPublicIp() {
+      const res = await fetch("https://api.ipify.org?format=json");
+      const data = await res.json();
+      return data.ip || "";
+    }
+
+    function formatTime(t) {
+      const h = String(Math.floor(t / 3600)).padStart(2, "0");
+      const m = String(Math.floor((t % 3600) / 60)).padStart(2, "0");
+      const s = String(t % 60).padStart(2, "0");
+      return `${h}:${m}:${s}`;
+    }
+
+    function decksLeft(round) {
+      const n = Number(round) || 1;
+      if (n <= 10) return 8;
+      if (n <= 20) return 7;
+      if (n <= 30) return 6;
+      if (n <= 40) return 5;
+      if (n <= 50) return 4;
+      return 3;
+    }
+
+    function parsedCards(cards) {
+      return cards
+        .split(/[\s,\/]+/)
+        .map(c => c.trim().toUpperCase())
+        .filter(Boolean);
+    }
+
+    function cardTotal(cards) {
+      return parsedCards(cards).reduce((sum, card) => sum + (cardMap[card] ?? 0), 0);
+    }
+
+    function finalTotal() {
+      const manual = els.manualTotal.value.trim();
+      if (manual !== "" && !Number.isNaN(Number(manual))) {
+        return Number(manual);
+      }
+      return cardTotal(els.cards.value);
+    }
+
+    function trueCount() {
+      return Number((finalTotal() / decksLeft(Number(els.round.value) || 1)).toFixed(2));
+    }
+
+    function isActivated() {
+      return !!state.expiredAt && state.timeLeft > 0;
+    }
+
+    function resultData() {
+      const total = finalTotal();
+
+      if (!isActivated()) {
+        return {
+          direction: "未啟用",
+          suggestion: "請先輸入序號",
+          directionClass: ""
+        };
       }
 
-      document.getElementById("result").innerHTML = resultText;
+      if (total <= -3) {
+        return { direction: "下莊", suggestion: "勇敢下注莊", directionClass: "redGlow" };
+      }
+      if (total >= 3) {
+        return { direction: "下閒", suggestion: "勇敢下注閒", directionClass: "blueGlow" };
+      }
+      if (total <= -1) {
+        return { direction: "下莊", suggestion: "小注下莊", directionClass: "redGlow" };
+      }
+      if (total >= 1) {
+        return { direction: "下閒", suggestion: "小注下閒", directionClass: "blueGlow" };
+      }
+      return { direction: "看一把", suggestion: "看一把或自行判斷", directionClass: "" };
     }
-  </script>
 
+    function renderButtons() {
+      els.quickCards.innerHTML = "";
+      quickCards.forEach(item => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn quickBtn quickBtnBlue";
+        btn.textContent = item;
+        btn.addEventListener("click", () => {
+          const prev = els.cards.value.trim();
+          els.cards.value = prev ? `${prev} ${item}` : item;
+          render();
+        });
+        els.quickCards.appendChild(btn);
+      });
+
+      els.quickTotals.innerHTML = "";
+      quickTotals.forEach(item => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn quickBtn quickBtnBlue";
+        btn.textContent = item;
+        btn.addEventListener("click", () => {
+          els.manualTotal.value = `${els.manualTotal.value}${item}`;
+          render();
+        });
+        els.quickTotals.appendChild(btn);
+      });
+    }
+
+    function render() {
+      const active = isActivated();
+      const result = resultData();
+      const remainDecks = decksLeft(Number(els.round.value) || 1);
+
+      els.notActivatedBox.classList.toggle("hidden", active);
+      els.activatedArea.classList.toggle("hidden", !active);
+      els.summary.classList.toggle("hidden", !active);
+
+      els.resultDirection.textContent = result.direction;
+      els.resultSuggestion.textContent = result.suggestion;
+      els.resultDirection.className = `resultBig ${result.directionClass || ""}`;
+      els.timer.textContent = formatTime(state.timeLeft);
+      els.timer.classList.toggle("danger", state.timeLeft > 0 && state.timeLeft < 60);
+
+      els.summaryFinalTotal.textContent = `權值總和：${finalTotal()}`;
+      els.summaryDecksLeft.textContent = `剩餘副數：${remainDecks}`;
+      els.summaryTrueCount.textContent = `真數：${trueCount()}`;
+    }
+
+    function startTimer() {
+      if (state.timerId) clearInterval(state.timerId);
+
+      state.timerId = setInterval(() => {
+        if (!state.expiredAt) {
+          state.timeLeft = 0;
+          render();
+          return;
+        }
+
+        const remain = Math.max(
+          0,
+          Math.floor((new Date(state.expiredAt).getTime() - Date.now()) / 1000)
+        );
+
+        state.timeLeft = remain;
+
+        if (remain <= 0) {
+          state.expiredAt = null;
+          localStorage.removeItem("blackspade_active_code");
+          localStorage.removeItem("blackspade_expired_at");
+          clearInterval(state.timerId);
+          state.timerId = null;
+        }
+
+        render();
+      }, 1000);
+    }
+
+    async function activateLicense() {
+      const code = els.license.value.trim().toUpperCase();
+
+      if (!code) {
+        alert("請先輸入序號");
+        return;
+      }
+
+      try {
+        const deviceId = getOrCreateDeviceId();
+        const ip = await getPublicIp();
+
+        const res = await fetch(EXEC_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({ code, deviceId, ip })
+        });
+
+        const text = await res.text();
+        const data = JSON.parse(text);
+
+        if (data.ok) {
+          if (data.expiredAt) {
+            state.expiredAt = data.expiredAt;
+            localStorage.setItem("blackspade_expired_at", data.expiredAt);
+          }
+
+          localStorage.setItem("blackspade_active_code", code);
+
+          if (data.ipChanged) {
+            alert("同裝置登入成功，但IP改變");
+          } else {
+            alert(data.message || "啟用成功");
+          }
+
+          const remain = state.expiredAt
+            ? Math.max(0, Math.floor((new Date(state.expiredAt).getTime() - Date.now()) / 1000))
+            : 0;
+          state.timeLeft = remain;
+          startTimer();
+          render();
+        } else {
+          alert(data.message || "序號驗證失敗");
+        }
+      } catch (error) {
+        console.error(error);
+        alert("連線失敗，請稍後再試");
+      }
+    }
+
+    function loadSavedState() {
+      const savedCode = localStorage.getItem("blackspade_active_code");
+      const savedExpiredAt = localStorage.getItem("blackspade_expired_at");
+
+      if (savedCode) els.license.value = savedCode;
+      if (savedExpiredAt) {
+        state.expiredAt = savedExpiredAt;
+        state.timeLeft = Math.max(
+          0,
+          Math.floor((new Date(savedExpiredAt).getTime() - Date.now()) / 1000)
+        );
+      }
+    }
+
+    function bindEvents() {
+      els.activateBtn.addEventListener("click", activateLicense);
+
+      els.round.addEventListener("input", () => {
+        const n = Number(els.round.value);
+        if (!n || n < 1) els.round.value = "1";
+        render();
+      });
+
+      els.cards.addEventListener("input", render);
+      els.manualTotal.addEventListener("input", render);
+
+      els.clearRoundBtn.addEventListener("click", () => {
+        els.round.value = "1";
+        render();
+      });
+
+      els.clearCardsBtn.addEventListener("click", () => {
+        els.cards.value = "";
+        render();
+      });
+
+      els.clearManualTotalBtn.addEventListener("click", () => {
+        els.manualTotal.value = "";
+        render();
+      });
+    }
+
+    renderButtons();
+    loadSavedState();
+    bindEvents();
+    if (state.expiredAt) startTimer();
+    render();
+  </script>
 </body>
 </html>
